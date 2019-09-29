@@ -1,0 +1,105 @@
+apply plugin: 'com.android.application'
+
+android {
+    compileSdkVersion 28
+    buildToolsVersion "28.0.3"
+
+    defaultConfig {
+        applicationId "org.proninyaroslav.libretorrent"
+        minSdkVersion 16 /* Officially Android Jelly Bean (< 4.4) support is dropped in libtorrent4j */
+        targetSdkVersion 28
+        versionCode 11
+        /*
+         * Convection:
+         *  major.minor.[revision][-some_info]
+         */
+        versionName "1.9.1"
+        vectorDrawables.useSupportLibrary = true
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+
+        ndk {
+            abiFilters 'armeabi-v7a', 'arm64-v8a', 'x86', 'x86_64'
+        }
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+        }
+        debug {
+            applicationIdSuffix ".debug"
+            versionNameSuffix "-DEBUG"
+
+            testCoverageEnabled true
+            debuggable true
+        }
+    }
+
+    splits {
+        abi {
+            enable true
+            reset()
+            include 'armeabi-v7a', 'arm64-v8a', 'x86', 'x86_64'
+            universalApk true
+        }
+    }
+
+    project.ext.versionCodes = ['armeabi-v7a': 1, 'arm64-v8a': 2, 'x86': 3, 'x86_64': 4]
+
+    android.applicationVariants.all { variant ->
+        variant.outputs.all { output ->
+            output.versionCodeOverride =
+                    project.ext.versionCodes.get(output.getFilter(com.android.build.OutputFile.ABI), 0) * 1000000 + android.defaultConfig.versionCode
+        }
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+}
+
+repositories {
+    mavenCentral()
+    maven {
+        url "https://jitpack.io"
+    }
+}
+
+def LIBTORRENT4J_VERSION='1.2.0.22'
+
+dependencies {
+    implementation fileTree(dir: 'libs', include: ['*.jar'])
+
+    testImplementation 'junit:junit:4.12'
+    androidTestImplementation 'androidx.test.ext:junit:1.0.0'
+    androidTestImplementation 'androidx.test.espresso:espresso-core:3.1.0'
+
+    /* Standard Android Support libs */
+    implementation 'androidx.appcompat:appcompat:1.0.2'
+    implementation 'androidx.drawerlayout:drawerlayout:1.0.0'
+    implementation 'androidx.constraintlayout:constraintlayout:2.0.0-alpha2'
+    implementation 'com.google.android.material:material:1.1.0-alpha01'
+
+    /* Don't use Commons IO >= 2.6, because they uses Java NIO, supported only from API 26 */
+    implementation 'commons-io:commons-io:2.5'
+    implementation 'ch.acra:acra:4.11'
+    implementation 'com.google.code.gson:gson:2.8.5'
+    implementation 'com.takisoft.preferencex:preferencex:1.0.0'
+    implementation 'com.github.aakira:expandable-layout:1.6.0@aar'
+    implementation 'com.github.clans:fab:1.6.4'
+    implementation 'com.github.yukuku:ambilwarna:2.0.1'
+    implementation 'org.greenrobot:eventbus:3.1.1'
+    implementation 'net.java.dev.jna:jna:4.5.2@aar'
+    implementation 'com.github.claudiodegio:MsvSearch:1.0.0'
+    implementation 'com.android.volley:volley:1.1.1'
+    implementation 'com.google.code.gson:gson:2.8.2'
+
+    /* libtorrent wrapper */
+    implementation 'org.libtorrent4j:libtorrent4j:' + LIBTORRENT4J_VERSION
+    implementation 'org.libtorrent4j:libtorrent4j-android-arm:' + LIBTORRENT4J_VERSION
+    implementation 'org.libtorrent4j:libtorrent4j-android-arm64:' + LIBTORRENT4J_VERSION
+    implementation 'org.libtorrent4j:libtorrent4j-android-x86:' + LIBTORRENT4J_VERSION
+    implementation 'org.libtorrent4j:libtorrent4j-android-x86_64:' + LIBTORRENT4J_VERSION
+}
